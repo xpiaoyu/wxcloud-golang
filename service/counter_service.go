@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"time"
 
@@ -33,6 +34,11 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 // CounterHandler 计数器接口
 func CounterHandler(w http.ResponseWriter, r *http.Request) {
 	res := &JsonResult{}
+
+	// Get data from header
+	openId := r.Header.Get("x-wx-openid")
+	source := r.Header.Get("x-wx-source")
+	log.Printf("openId: %s, source: %s", openId, source)
 
 	if r.Method == http.MethodGet {
 		counter, err := getCurrentCounter()
