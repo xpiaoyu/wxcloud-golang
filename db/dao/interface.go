@@ -16,3 +16,12 @@ type CounterInterfaceImp struct{}
 
 // Imp 实现实例
 var Imp CounterInterface = &CounterInterfaceImp{}
+
+type RecordingInterface interface {
+	InsertRecording(recording *model.RecordingModel) error
+	GetRecordingsByOpenId(openId string) ([]*model.RecordingModel, error)
+}
+
+type RecordingInterfaceImp struct{}
+
+var RecordingImp RecordingInterface = &RecordingInterfaceImp{}

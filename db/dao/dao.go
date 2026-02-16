@@ -29,3 +29,16 @@ func (imp *CounterInterfaceImp) GetCounter(id int32) (*model.CounterModel, error
 
 	return counter, err
 }
+
+func (imp *RecordingInterfaceImp) InsertRecording(recording *model.RecordingModel) error {
+	cli := db.Get()
+	return cli.Table("Recordings").Create(recording).Error
+}
+
+func (imp *RecordingInterfaceImp) GetRecordingsByOpenId(openId string) ([]*model.RecordingModel, error) {
+	var err error
+	var recordings []*model.RecordingModel
+	cli := db.Get()
+	err = cli.Table("Recordings").Where("openId = ?", openId).Find(&recordings).Error
+	return recordings, err
+}

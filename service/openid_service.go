@@ -8,8 +8,8 @@ import (
 
 // OpenIdResult 返回结构
 type OpenIdResult struct {
-	OpenId   string         `json:"openid"`
-	ErrorMsg string      `json:"errorMsg,omitempty"`
+	OpenId   string `json:"openid"`
+	ErrorMsg string `json:"errorMsg,omitempty"`
 }
 
 func GetOpenIdHandler(w http.ResponseWriter, r *http.Request) {
