@@ -34,6 +34,13 @@ func InsertRecordingHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if strings.TrimSpace(fileId) == "" {
+		resp.Code = -1
+		resp.ErrorMsg = "fileId 不能为空"
+		outputJson(w, resp)
+		return
+	}
+
 	insertRecording(openId, fileId)
 	resp.Code = 0
 	outputJson(w, resp)
