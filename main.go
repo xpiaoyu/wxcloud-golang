@@ -16,6 +16,8 @@ func main() {
 	http.HandleFunc("/", service.IndexHandler)
 	http.HandleFunc("/api/count", service.CounterHandler)
 	http.HandleFunc("/api/openid", service.GetOpenIdHandler)
+	http.HandleFunc("/api/insertRecording", service.InsertRecordingHandler)
+	http.HandleFunc("/api/getRecordingsByOpenId", service.GetRecordingsByOpenIdHandler)
 
 	log.Fatal(http.ListenAndServe(":80", nil))
 }

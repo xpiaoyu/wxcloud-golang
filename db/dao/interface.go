@@ -19,7 +19,7 @@ var Imp CounterInterface = &CounterInterfaceImp{}
 
 type RecordingInterface interface {
 	InsertRecording(recording *model.RecordingModel) error
-	GetRecordingsByOpenId(openId string) ([]*model.RecordingModel, error)
+	GetRecordingsByOpenId(openId string, lastTimestamp int64) ([]*model.RecordingModel, error)
 }
 
 type RecordingInterfaceImp struct{}

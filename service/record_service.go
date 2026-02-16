@@ -39,6 +39,27 @@ func InsertRecordingHandler(w http.ResponseWriter, r *http.Request) {
 	outputJson(w, resp)
 }
 
+func GetRecordingsByOpenIdHandler(w http.ResponseWriter, r *http.Request) {
+	resp := &JsonResult{}
+	openId := r.Header.Get("x-wx-openid")
+	if strings.TrimSpace(openId) == "" {
+		resp.Code = -1
+		resp.ErrorMsg = "未获取到 openId"
+		outputJson(w, resp)
+		return
+	}
+	recordings, err := dao.RecordingImp.GetRecordingsByOpenId(openId, 0)
+	if err != nil {
+		resp.Code = -1
+		resp.ErrorMsg = "查询录音记录失败"
+		outputJson(w, resp)
+		return
+	}
+	resp.Code = 0
+	resp.Data = recordings
+	outputJson(w, resp)
+}
+
 func getFileId(r *http.Request) (string, error) {
 	decoder := json.NewDecoder(r.Body)
 	body := make(map[string]interface{})
@@ -63,6 +84,7 @@ func insertRecording(openId string, fileId string) error {
 		OpenId:    openId,
 		FileId:    fileId,
 		CreatedAt: time.Now().UTC(),
+		Timestamp: time.Now().UnixNano(),
 	})
 }
 

@@ -30,15 +30,21 @@ func (imp *CounterInterfaceImp) GetCounter(id int32) (*model.CounterModel, error
 	return counter, err
 }
 
+// RecordingInterfaceImp 录音记录接口实现
+
 func (imp *RecordingInterfaceImp) InsertRecording(recording *model.RecordingModel) error {
 	cli := db.Get()
 	return cli.Table("Recordings").Create(recording).Error
 }
 
-func (imp *RecordingInterfaceImp) GetRecordingsByOpenId(openId string) ([]*model.RecordingModel, error) {
+func (imp *RecordingInterfaceImp) GetRecordingsByOpenId(openId string, lastTimestamp int64) ([]*model.RecordingModel, error) {
 	var err error
 	var recordings []*model.RecordingModel
 	cli := db.Get()
-	err = cli.Table("Recordings").Where("openId = ?", openId).Find(&recordings).Error
+	if lastTimestamp > 0 {
+		err = cli.Table("Recordings").Where("openId = ? AND timestamp < ?", openId, lastTimestamp).Order("timestamp DESC").Find(&recordings).Error
+	} else {
+		err = cli.Table("Recordings").Where("openId = ?", openId).Order("timestamp DESC").Find(&recordings).Error
+	}
 	return recordings, err
 }
