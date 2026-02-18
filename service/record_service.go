@@ -26,6 +26,7 @@ func InsertRecordingHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// 从请求体中获取 fileId 参数，fileId 是用户上传的录音文件在微信云存储中的唯一标识符
 	fileId, err := getFileId(r)
 	if err != nil {
 		resp.Code = -1
@@ -33,7 +34,6 @@ func InsertRecordingHandler(w http.ResponseWriter, r *http.Request) {
 		outputJson(w, resp)
 		return
 	}
-
 	if strings.TrimSpace(fileId) == "" {
 		resp.Code = -1
 		resp.ErrorMsg = "fileId 不能为空"
@@ -41,7 +41,23 @@ func InsertRecordingHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	insertRecording(openId, fileId)
+	duration, err := getDuration(r)
+	if err != nil {
+		resp.Code = -1
+		resp.ErrorMsg = "未获取到 duration"
+		outputJson(w, resp)
+		return
+	}
+
+	fileSize, err := getFileSize(r)
+	if err != nil {
+		resp.Code = -1
+		resp.ErrorMsg = "未获取到 fileSize"
+		outputJson(w, resp)
+		return
+	}
+
+	insertRecording(openId, fileId, duration, fileSize)
 	resp.Code = 0
 	outputJson(w, resp)
 }
@@ -73,7 +89,6 @@ func getFileId(r *http.Request) (string, error) {
 	if err := decoder.Decode(&body); err != nil {
 		return "", err
 	}
-	defer r.Body.Close()
 
 	fileId, ok := body["fileId"]
 	if !ok {
@@ -83,13 +98,44 @@ func getFileId(r *http.Request) (string, error) {
 	return fileId.(string), nil
 }
 
-func insertRecording(openId string, fileId string) error {
+func getDuration(r *http.Request) (int, error) {
+	decoder := json.NewDecoder(r.Body)
+	body := make(map[string]interface{})
+	if err := decoder.Decode(&body); err != nil {
+		return 0, err
+	}
+
+	duration, ok := body["duration"]
+	if !ok {
+		return 0, fmt.Errorf("缺少 duration 参数")
+	}
+
+	return int(duration.(float64)), nil
+}
+
+func getFileSize(r *http.Request) (int, error) {
+	decoder := json.NewDecoder(r.Body)
+	body := make(map[string]interface{})
+	if err := decoder.Decode(&body); err != nil {
+		return 0, err
+	}
+
+	fileSize, ok := body["fileSize"]
+	if !ok {
+		return 0, fmt.Errorf("缺少 fileSize 参数")
+	}
+	return int(fileSize.(float64)), nil
+}
+
+func insertRecording(openId string, fileId string, duration int, fileSize int) error {
 	// 使用UUID作为录音记录的唯一标识符，确保每条记录都有一个独特的ID
 	id := uuid.New().String()
 	return dao.RecordingImp.InsertRecording(&model.RecordingModel{
 		Id:        id,
 		OpenId:    openId,
 		FileId:    fileId,
+		Duration:  duration,
+		FileSize:  fileSize,
 		CreatedAt: time.Now().UTC(),
 		Timestamp: time.Now().UnixNano(),
 	})
