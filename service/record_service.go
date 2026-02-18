@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -14,6 +15,9 @@ import (
 )
 
 func InsertRecordingHandler(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+	bodyBytes, _ := io.ReadAll(r.Body)
+	bs := string(bodyBytes) // body string
 	resp := &JsonResult{}
 
 	// OpenId来自请求头，在微信云托管中，微信会自动将用户的openId放在请求头中，键名为"x-wx-openid"
@@ -27,7 +31,7 @@ func InsertRecordingHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 从请求体中获取 fileId 参数，fileId 是用户上传的录音文件在微信云存储中的唯一标识符
-	fileId, err := getFileId(r)
+	fileId, err := getFileId(bs)
 	if err != nil {
 		resp.Code = -1
 		resp.ErrorMsg = "未获取到 fileId"
@@ -41,7 +45,7 @@ func InsertRecordingHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	duration, err := getDuration(r)
+	duration, err := getDuration(bs)
 	if err != nil {
 		resp.Code = -1
 		resp.ErrorMsg = "未获取到 duration"
@@ -49,7 +53,7 @@ func InsertRecordingHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fileSize, err := getFileSize(r)
+	fileSize, err := getFileSize(bs)
 	if err != nil {
 		resp.Code = -1
 		resp.ErrorMsg = "未获取到 fileSize"
@@ -83,8 +87,8 @@ func GetRecordingsByOpenIdHandler(w http.ResponseWriter, r *http.Request) {
 	outputJson(w, resp)
 }
 
-func getFileId(r *http.Request) (string, error) {
-	decoder := json.NewDecoder(r.Body)
+func getFileId(bodyString string) (string, error) {
+	decoder := json.NewDecoder(strings.NewReader(bodyString))
 	body := make(map[string]interface{})
 	if err := decoder.Decode(&body); err != nil {
 		return "", err
@@ -98,8 +102,8 @@ func getFileId(r *http.Request) (string, error) {
 	return fileId.(string), nil
 }
 
-func getDuration(r *http.Request) (int, error) {
-	decoder := json.NewDecoder(r.Body)
+func getDuration(bodyString string) (int, error) {
+	decoder := json.NewDecoder(strings.NewReader(bodyString))
 	body := make(map[string]interface{})
 	if err := decoder.Decode(&body); err != nil {
 		return 0, err
@@ -113,8 +117,8 @@ func getDuration(r *http.Request) (int, error) {
 	return int(duration.(float64)), nil
 }
 
-func getFileSize(r *http.Request) (int, error) {
-	decoder := json.NewDecoder(r.Body)
+func getFileSize(bodyString string) (int, error) {
+	decoder := json.NewDecoder(strings.NewReader(bodyString))
 	body := make(map[string]interface{})
 	if err := decoder.Decode(&body); err != nil {
 		return 0, err
